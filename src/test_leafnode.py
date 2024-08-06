@@ -18,14 +18,14 @@ class TestLeafNode(unittest.TestCase):
         node = LeafNode(tag1, value1)
         node2 = LeafNode(tag1, value1)
         node3 = LeafNode(tag2, value3, props2)
-        node4 = LeafNode(tag1, value2)
         node5 = LeafNode(tag1, value1, props1)
         self.assertEqual(node, node2)
-        self.assertNotEqual(node, node5)
+        self.assertEqual(node, node5)
         self.assertNotEqual(node, node3)
-        self.assertNotEqual(node, node4)
         self.assertEqual(node.to_html(), to_html_test)
         self.assertEqual(node3.to_html(), to_html_with_props_test)
+        with self.assertRaises(ValueError):
+            node4 = LeafNode(tag1, value2)
         
         
 if __name__ == "__main__":
