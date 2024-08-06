@@ -1,5 +1,5 @@
 import unittest
-from leafnode import LeafNode
+from htmlnode import LeafNode
 
 tag1 = "p"
 tag2 = "a"
