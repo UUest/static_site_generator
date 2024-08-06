@@ -64,6 +64,9 @@ class ParentNode(HTMLNode):
         children_string = "".join(list(map(lambda node: node.to_html(), self.children)))
         return f"<{self.tag}>{children_string}</{self.tag}>"
     
+    def __repr__(self) -> str:
+        return f"ParentNode(tag={self.tag}, children={self.children}, props={self.props})"
+    
     
 def text_node_to_html_node(text_node: TextNode):
     if text_node.text_type == "text":
