@@ -26,7 +26,7 @@ def split_nodes_delimiter(old_nodes: list, delimiter: str, text_type: str) -> li
         if len(parts) % 2 == 0:
             raise ValueError(f"Unmatched {delimiter} found in node text: {node.text}. Invalid Markdown syntax")
         return [
-            TextNode(part, text_type if i % 2 else node.text_type)
+            TextNode(part, text_type if i % 2 == 1 else node.text_type)
             for i, part in enumerate(parts)
             ]
     return [new_node for node in old_nodes for new_node in create_text_nodes(node)]
@@ -39,13 +39,39 @@ def extract_markdown_links(text):
     return re.findall(r"\[(.*?)\]\((.*?)\)", text)
 
 def split_nodes_image(old_nodes: list) -> list:
-    pass
-    
+    def create_image_nodes(node: TextNode) -> list:
+        if node.text_type != "text":
+            return [node]
+        images = extract_markdown_images(node.text)
+        nodes = []
+        remaining_text = node.text
+        for alt, url in images:
+            before_image, _, remaining_text = remaining_text.partition(f"![{alt}]({url})")
+            if before_image != "":
+                nodes.append(TextNode(before_image, node.text_type))
+            nodes.append(TextNode(alt, "image", url))
+        if remaining_text != "":
+            nodes.append(TextNode(remaining_text, node.text_type))
+        return nodes
+    return [new_node for node in old_nodes for new_node in create_image_nodes(node)]
+        
+
+
 def split_nodes_link(old_nodes: list) -> list:
-    pass
-
-
-
-
+    def create_link_nodes(node: TextNode) -> list:
+        if node.text_type != "text":
+            return [node]
+        links = extract_markdown_links(node.text)
+        nodes=[]
+        remaining_text = node.text
+        for alt, url in links:
+            before_link, _, remaining_text = remaining_text.partition(f"[{alt}]({url})")
+            if before_link != "":
+                nodes.append(TextNode(before_link, node.text_type))
+            nodes.append(TextNode(alt, "link", url))
+        if remaining_text != "":
+            nodes.append(TextNode(remaining_text, node.text_type))
+        return nodes
+    return [new_node for node in old_nodes for new_node in create_link_nodes(node)]
 
 
