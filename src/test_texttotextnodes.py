@@ -4,7 +4,7 @@ from textnode import TextNode
 from htmlnode import HTMLNode, LeafNode, ParentNode
 from nodefuncs import split_nodes_link, split_nodes_delimiter, split_nodes_image, extract_markdown_images, extract_markdown_links, text_to_text_nodes
 
-text1 = "This is **text** with an *italic* word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+text1 = "This is **text** with an *italic* word and a ```code block``` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
 text2 = "This is *italic* text with and **bold** word and an ![image](http://www.imgur.com/img.jpg) and no links. Maybe some more **bold** text over here."
 
 class TextToTextNode(unittest.TestCase):
