@@ -69,7 +69,7 @@ def markdown_to_html_node(markdown: str) -> ParentNode:
             children = text_to_children(node.value.strip("#").strip())
         elif node.tag == "quote":
             new_tag = "blockquote"
-            children = text_to_children(node.value)
+            children = text_to_children(node.value.strip(">").strip())
         elif node.tag == "code":
             new_tag = "pre"
             children = text_to_children(node.value)
