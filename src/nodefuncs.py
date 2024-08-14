@@ -88,7 +88,7 @@ def split_nodes_link(old_nodes: list) -> list:
 
 def text_to_text_nodes(text: str) -> list:
     node = TextNode(text, text_type_text)
-    return split_nodes_link(split_nodes_image(split_nodes_delimiter(split_nodes_delimiter(split_nodes_delimiter([node], "**", text_type_bold), "*", text_type_italic), "```", text_type_code)))
+    return split_nodes_link(split_nodes_image(split_nodes_delimiter(split_nodes_delimiter(split_nodes_delimiter(split_nodes_delimiter([node], "**", text_type_bold), "*", text_type_italic), "```", text_type_code), "`", text_type_code)))
 
 def list_node_to_leaf_node(nodevalue: str) -> list:
     list_of_strs = list(map(lambda item: item[2:].strip(), nodevalue.split("\n")))
