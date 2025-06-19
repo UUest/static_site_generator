@@ -2,7 +2,8 @@ import os
 import shutil
 
 def clean_public():
-    shutil.rmtree('./public')
+    if os.path.exists('./public'):
+        shutil.rmtree('./public')
     os.mkdir('./public')
 
 def copy_static(path='./static/'):
@@ -14,5 +15,3 @@ def copy_static(path='./static/'):
         elif os.path.isfile(f'{path}/{dir}') == False:
             os.mkdir(f'./public/{dir}')
             copy_static(f'{path}{dir}/')
-            
-         
