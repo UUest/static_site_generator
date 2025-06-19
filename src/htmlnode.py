@@ -33,7 +33,9 @@ class HTMLNode:
 class LeafNode(HTMLNode):
     def __init__(self, tag, value, props=None):
         props = props or {}
-        if (value is None or value == '') and ("src" not in props or "alt" not in props):
+        # Allow empty values for certain formatting tags (like empty italic/bold)
+        # and for img tags that have src/alt props
+        if (value is None or value == '') and tag not in ['i', 'b', 'em', 'strong'] and ("src" not in props or "alt" not in props):
             raise ValueError("All leaf nodes must have a value")
         super().__init__(tag=tag, value=value, children=None, props=props)
 

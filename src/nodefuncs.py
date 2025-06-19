@@ -27,22 +27,26 @@ def text_node_to_html_node(text_node: TextNode) -> LeafNode:
         return LeafNode("img", "", {"src": f"{text_node.url}", "alt": f"{text_node.text}"})
     else:
         raise Exception("Invalid text_type")
-    
-    
+
+
 def split_nodes_delimiter(old_nodes: list, delimiter: str, text_type: str) -> list:
     def create_text_nodes(node: TextNode) -> list:
         if node.text_type != "text":
              return [node]
         parts = node.text.split(delimiter)
         if len(parts) % 2 == 0:
+            # For underscore, be more lenient - just return the original node if unmatched
+            if delimiter == "_":
+                return [node]
             raise ValueError(f"Unmatched {delimiter} found in node text: {node.text}. Invalid Markdown syntax")
-        return [
-            TextNode(part, text_type if i % 2 == 1 else node.text_type)
-            for i, part in enumerate(parts)
-            ]
+        result = []
+        for i, part in enumerate(parts):
+            if part:  # Only add non-empty parts
+                result.append(TextNode(part, text_type if i % 2 == 1 else node.text_type))
+        return result if result else [node]  # Return original node if all parts are empty
     return [new_node for node in old_nodes for new_node in create_text_nodes(node)]
-    
-    
+
+
 def extract_markdown_images(text):
     return re.findall(r"!\[(.*?)\]\((.*?)\)", text)
 
@@ -65,7 +69,7 @@ def split_nodes_image(old_nodes: list) -> list:
             nodes.append(TextNode(remaining_text, node.text_type))
         return nodes
     return [new_node for node in old_nodes for new_node in create_image_nodes(node)]
-        
+
 
 
 def split_nodes_link(old_nodes: list) -> list:
@@ -88,7 +92,15 @@ def split_nodes_link(old_nodes: list) -> list:
 
 def text_to_text_nodes(text: str) -> list:
     node = TextNode(text, text_type_text)
-    return split_nodes_link(split_nodes_image(split_nodes_delimiter(split_nodes_delimiter(split_nodes_delimiter(split_nodes_delimiter([node], "**", text_type_bold), "*", text_type_italic), "```", text_type_code), "`", text_type_code)))
+    # Process links and images first to avoid conflicts with underscores in URLs
+    nodes = split_nodes_link(split_nodes_image([node]))
+    # Then process text formatting
+    nodes = split_nodes_delimiter(nodes, "**", text_type_bold)
+    nodes = split_nodes_delimiter(nodes, "*", text_type_italic)
+    nodes = split_nodes_delimiter(nodes, "_", text_type_italic)
+    nodes = split_nodes_delimiter(nodes, "```", text_type_code)
+    nodes = split_nodes_delimiter(nodes, "`", text_type_code)
+    return nodes
 
 def list_node_to_leaf_node(nodevalue: str) -> list:
     list_of_strs = list(map(lambda item: item[2:].strip(), nodevalue.split("\n")))
