@@ -8,28 +8,61 @@ def generate_page(from_path, template_path, dest_path, basepath):
     template = open(template_path).read()
     html_string = markdown_to_html_node(md_file).to_html()
     title = extract_title(md_file)
+
+    # Replace template placeholders
     template = template.replace("{{ Title }}", title)
     template = template.replace("{{ Content }}", html_string)
-    # Extract filename without extension for URL replacements
-    filename = os.path.basename(from_path)[:-3]  # Remove .md extension
-    template = template.replace("href=\"/\"", f"href=\"{basepath}/{filename}.html\"")
-    template = template.replace("src=\"", f"src=\"{basepath}/")
+    template = template.replace("{{ BasePath }}", basepath)
+
+    # Fix relative links and paths in the HTML content
+    if basepath:
+        # Only replace absolute paths that don't already have the basepath
+        import re
+        # Replace href="/" with href="/basepath/"
+        template = template.replace('href="/"', f'href="{basepath}/"')
+        # Replace other absolute hrefs that don't already start with basepath
+        template = re.sub(r'href="(/(?!' + re.escape(basepath.lstrip('/')) + r')[^"]*)"',
+                         f'href="{basepath}\\1"', template)
+        # Replace absolute src paths that don't already start with basepath
+        template = re.sub(r'src="(/(?!' + re.escape(basepath.lstrip('/')) + r')[^"]*)"',
+                         f'src="{basepath}\\1"', template)
+
     open(dest_path, "w").write(template)
 
 def generate_page_recursively(dir_path_content, template_path, dest_dir_path, basepath):
     src_dir = os.listdir(dir_path_content)
     for dir in src_dir:
-        if os.path.isfile(f'{dir_path_content}/{dir}') == True:
-            print(f"Generating page from {dir_path_content}/{dir} to {dest_dir_path}/{dir[:-2]}html using {template_path}")
-            md_file = open(f'{dir_path_content}/{dir}').read()
-            template = open(template_path).read()
-            html_string = markdown_to_html_node(md_file).to_html()
-            title = extract_title(md_file)
-            template = template.replace("{{ Title }}", title)
-            template = template.replace("{{ Content }}", html_string)
-            template = template.replace("href=\"/\"", f"href=\"{basepath}/{dir[:-2]}html\"")
-            template = template.replace("src=\"", f"src=\"{basepath}/{dir[:-2]}")
-            open(f'{dest_dir_path}/{dir[:-2]}html', "w").write(template)
-        elif os.path.isdir(f'{dir_path_content}/{dir}'):
-            os.makedirs(f'{dest_dir_path}/{dir}', exist_ok=True)
-            generate_page_recursively(f'{dir_path_content}/{dir}/', template_path, f'{dest_dir_path}/{dir}', basepath)
+        src_path = f'{dir_path_content}/{dir}'
+        if os.path.isfile(src_path):
+            if dir.endswith('.md'):
+                # Generate HTML from markdown
+                dest_file = f'{dest_dir_path}/{dir[:-3]}.html'  # Replace .md with .html
+                print(f"Generating page from {src_path} to {dest_file} using {template_path}")
+
+                md_file = open(src_path).read()
+                template = open(template_path).read()
+                html_string = markdown_to_html_node(md_file).to_html()
+                title = extract_title(md_file)
+
+                # Replace template placeholders
+                template = template.replace("{{ Title }}", title)
+                template = template.replace("{{ Content }}", html_string)
+                template = template.replace("{{ BasePath }}", basepath)
+
+                # Fix relative links and paths in the HTML content
+                if basepath:
+                    import re
+                    # Replace href="/" with href="/basepath/"
+                    template = template.replace('href="/"', f'href="{basepath}/"')
+                    # Replace other absolute hrefs that don't already start with basepath
+                    template = re.sub(r'href="(/(?!' + re.escape(basepath.lstrip('/')) + r')[^"]*)"',
+                                     f'href="{basepath}\\1"', template)
+                    # Replace absolute src paths that don't already start with basepath
+                    template = re.sub(r'src="(/(?!' + re.escape(basepath.lstrip('/')) + r')[^"]*)"',
+                                     f'src="{basepath}\\1"', template)
+
+                open(dest_file, "w").write(template)
+        elif os.path.isdir(src_path):
+            dest_subdir = f'{dest_dir_path}/{dir}'
+            os.makedirs(dest_subdir, exist_ok=True)
+            generate_page_recursively(f'{dir_path_content}/{dir}/', template_path, dest_subdir, basepath)

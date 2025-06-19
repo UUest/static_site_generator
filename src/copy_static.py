@@ -6,12 +6,19 @@ def clean_path(path):
         shutil.rmtree(path)
     os.mkdir(path)
 
-def copy_static(path='./static/'):
-    src_dir = os.listdir(path)
-    for dir in src_dir:
-        if os.path.isfile(f'{path}/{dir}') == True:
-            shutil.copy(f'{path}{dir}', f'./docs/{path[8:]}{dir}')
-            print(f'{path}{dir} copied to ./docs/{path[8:]}{dir}')
-        elif os.path.isfile(f'{path}/{dir}') == False:
-            os.mkdir(f'./docs/{dir}')
-            copy_static(f'{path}{dir}/')
+def copy_static(src_path='static/', dest_path='docs/'):
+    if not os.path.exists(src_path):
+        print(f"Source path {src_path} does not exist")
+        return
+
+    src_dir = os.listdir(src_path)
+    for item in src_dir:
+        src_item_path = os.path.join(src_path, item)
+        dest_item_path = os.path.join(dest_path, item)
+
+        if os.path.isfile(src_item_path):
+            shutil.copy2(src_item_path, dest_item_path)
+            print(f'{src_item_path} copied to {dest_item_path}')
+        elif os.path.isdir(src_item_path):
+            os.makedirs(dest_item_path, exist_ok=True)
+            copy_static(src_item_path + '/', dest_item_path + '/')
